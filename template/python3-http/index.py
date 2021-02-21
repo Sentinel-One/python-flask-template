@@ -65,17 +65,5 @@ def call_handler(path):
     resp = format_response(response_data)
     return resp
 
-@app.errorhandler(HTTPException)
-def handle_http_exception(error):
-    error_dict = {
-        'code': error.code,
-        'description': error.description,
-        'stack_trace': traceback.format_exc() 
-    }
-    
-    response = jsonify(error_dict)
-    response.status_code = error.code
-    return response
-
 if __name__ == '__main__':
     serve(app, host='0.0.0.0', port=5000)
