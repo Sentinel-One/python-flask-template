@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from flask import Flask, request, jsonify, json
+from flask import Flask, request, jsonify
 from waitress import serve
 from werkzeug.exceptions import HTTPException
 import os
@@ -65,19 +65,6 @@ def call_handler(path):
     
     resp = format_response(response_data)
     return resp
-
-@app.errorhandler(HTTPException)
-def handle_exception(e):
-    # start with the correct headers and status code from the error
-    response = e.get_response()
-    # replace the body with JSON
-    response.data = json.dumps({
-        "code": e.code,
-        "name": e.name,
-        "description": e.description,
-    })
-    response.content_type = "application/json"
-    return response
 
 if __name__ == '__main__':
     serve(app, host='0.0.0.0', port=5000)
