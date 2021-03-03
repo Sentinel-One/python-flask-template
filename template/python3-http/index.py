@@ -74,7 +74,7 @@ def handle_exception(e):
         "type": "UNKNOWN",
         "title": e.name,
         "status": 500,
-        "detail": e.description
+        "detail": e.description if type(e.description) is str else "Flask Internal"
     })
     
     response.content_type = "application/json"
