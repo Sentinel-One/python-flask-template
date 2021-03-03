@@ -8,8 +8,6 @@ from function import handler
 if not os.environ.get("SENTRY_DSN") is None:
     sentry_sdk.init(os.environ["SENTRY_DSN"], environment=os.environ.get("FLASK_ENV") or "development")
 
-
-
 app = Flask(__name__)
 
 class Event:
