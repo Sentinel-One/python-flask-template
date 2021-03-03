@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, json
 from waitress import serve
 from werkzeug.exceptions import HTTPException
 import os
@@ -70,7 +70,7 @@ def call_handler(path):
 def handle_exception(e):
     response = e.get_response()
 
-    response.data = jsonify({
+    response.data = json.dumps({
         "type": "UNKNOWN",
         "title": e.name,
         "status": 500,
