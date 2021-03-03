@@ -66,5 +66,19 @@ def call_handler(path):
     resp = format_response(response_data)
     return resp
 
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    response = e.get_response()
+
+    response.data = jsonify({
+        "type": "UNKNOWN",
+        "title": e.name,
+        "status": 500,
+        "detail": e.description
+    })
+    
+    response.content_type = "application/json"
+    return response
+
 if __name__ == '__main__':
     serve(app, host='0.0.0.0', port=5000)
