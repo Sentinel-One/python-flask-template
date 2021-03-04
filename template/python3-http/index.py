@@ -70,8 +70,9 @@ def call_handler(path):
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
+    sentry_sdk.capture_exception(e)
+    
     response = e.get_response()
-
     response.data = json.dumps({
         "type": "UNKNOWN",
         "title": e.name,
