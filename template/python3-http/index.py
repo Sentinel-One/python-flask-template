@@ -87,7 +87,7 @@ def handle_exception(e):
         {
             "type": "UNKNOWN",
             "title": e.name,
-            "status": 500,
+            "status": e.code or 500,
             "detail": e.description if type(e.description) is str else "Flask Internal",
         }
     )
