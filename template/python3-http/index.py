@@ -1,12 +1,13 @@
 #!/usr/bin/env python
+import os, sentry_sdk
 from flask import Flask, request, jsonify, json
 from waitress import serve
 from werkzeug.exceptions import HTTPException
-import os, sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 from function import handler
 
 if not os.environ.get("SENTRY_DSN") is None:
-    sentry_sdk.init(os.environ["SENTRY_DSN"], environment=os.environ.get("FLASK_ENV") or "development")
+    sentry_sdk.init(os.environ["SENTRY_DSN"], environment=os.environ.get("FLASK_ENV") or "development",integrations=[FlaskIntegration()])
 
 app = Flask(__name__)
 
@@ -79,10 +80,6 @@ def call_handler(path):
 @app.errorhandler(HTTPException)
 def handle_exception(e):
     response = e.get_response()
-
-    if e.code == 500:
-        sentry_sdk.capture_exception(e)
-
     response.data = json.dumps(
         {
             "type": "UNKNOWN",
