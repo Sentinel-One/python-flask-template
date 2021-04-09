@@ -24,7 +24,7 @@ COPY requirements.txt   .
 USER root
 RUN pip install -r requirements.txt
 
-#build function directory and install user specified componenets.
+# Build the function directory and install any user-specified components
 USER app
 
 RUN mkdir -p function
@@ -33,12 +33,20 @@ WORKDIR /home/app/function/
 COPY function/requirements.txt	.
 RUN pip install --user -r requirements.txt
 
-WORKDIR /home/app/
-
 #install function code
 USER root
-COPY function   function
-RUN chown -R app:app ./
+COPY function/   .
+RUN chown -R app:app ../
+
+ARG TEST_COMMAND=tox
+ARG TEST_ENABLED=true
+RUN if [ "$TEST_ENABLED" == "false" ]; then \
+    echo "skipping tests";\
+    else \
+    eval "$TEST_COMMAND"; \
+    fi
+
+WORKDIR /home/app/
 
 #configure WSGI server and healthcheck
 USER app

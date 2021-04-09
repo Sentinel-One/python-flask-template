@@ -31,11 +31,20 @@ WORKDIR /home/app/function/
 COPY function/requirements.txt	.
 RUN pip install --user -r requirements.txt
 
+USER root
+COPY function/   .
+RUN chown -R app:app ../
+
+ARG TEST_COMMAND=tox
+ARG TEST_ENABLED=true
+RUN if [ "$TEST_ENABLED" == "false" ]; then \
+    echo "skipping tests";\
+    else \
+    eval "$TEST_COMMAND"; \
+    fi
+
 WORKDIR /home/app/
 
-USER root
-COPY function   function
-RUN chown -R app:app ./
 USER app
 
 # Set up of-watchdog for HTTP mode

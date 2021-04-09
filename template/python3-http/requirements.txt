@@ -1,3 +1,4 @@
 flask
 waitress
 sentry-sdk[flask]
+tox==3.*
