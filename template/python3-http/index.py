@@ -80,9 +80,6 @@ def call_handler(path):
 @app.errorhandler(HTTPException)
 def handle_exception(e):
 
-    if e.code >= 500:
-        sentry_sdk.capture_exception(e)
-
     response = e.get_response()
     response.data = json.dumps(
         {
