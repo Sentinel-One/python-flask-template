@@ -81,16 +81,19 @@ def call_handler(path):
 def handle_exception(e):
 
     response = e.get_response()
-    response.data = json.dumps(
-        {
-            "type": "UNKNOWN",
-            "title": e.name,
-            "status": e.code or 500,
-            "detail": e.description if type(e.description) is str else "Flask Internal",
-        }
-    )
+    
+    if response.content_type != "application/json":
+        response.data = json.dumps(
+            {
+                "type": "UNKNOWN",
+                "title": e.name,
+                "status": e.code or 500,
+                "detail": e.description if type(e.description) is str else "Flask Internal",
+            }
+        )
 
-    response.content_type = "application/json"
+        response.content_type = "application/json"
+
     return response
 
 
