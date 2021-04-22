@@ -93,7 +93,10 @@ def handle_exception(e):
         )
 
         response.content_type = "application/json"
-
+    
+    if (e.code or 500) >= 500:
+        sentry_sdk.capture_exception(e)
+    
     return response
 
 
