@@ -6,7 +6,7 @@ from werkzeug.exceptions import HTTPException
 from sentry_sdk.integrations.flask import FlaskIntegration
 from function import handler
 
-if not os.environ.get("SENTRY_DSN") is None:
+if os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(os.environ["SENTRY_DSN"],
                     traces_sample_rate=0.2,
                     environment=os.environ.get("FLASK_ENV") or "development",
