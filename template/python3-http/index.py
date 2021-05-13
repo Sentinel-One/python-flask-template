@@ -2,9 +2,10 @@
 import os, sentry_sdk
 from flask import Flask, request, jsonify, json
 from waitress import serve
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, abort
 from sentry_sdk.integrations.flask import FlaskIntegration
-from function import handler
+import jsonschema
+from function import handler, json_schema
 
 if os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(os.environ["SENTRY_DSN"],
@@ -59,7 +60,7 @@ def format_headers(resp):
 
 
 def format_response(resp):
-    if resp == None:
+    if resp is None:
         return ("", 200)
 
     statusCode = format_status_code(resp)
@@ -74,6 +75,16 @@ def format_response(resp):
 def call_handler(path):
     event = Event()
     context = Context()
+
+    if hasattr(json_schema,'payload_schema'):
+        try:
+            jsonschema.validate(event.body, json_schema.payload_schema, format_checker=jsonschema.draft7_format_checker)
+        except jsonschema.exceptions.ValidationError as err:
+            e = {"type": "VALIDATION_ERROR", "title": "The current JSON Body obejct does not conform with the JSON Schema", "status": 422, "detail": err.message}
+            response = jsonify(e)
+            response.status_code = e["status"]
+            abort(response)
+
     response_data = handler.handle(event, context)
 
     resp = format_response(response_data)
@@ -84,7 +95,7 @@ def call_handler(path):
 def handle_exception(e):
 
     response = e.get_response()
-    
+
     if response.content_type != "application/json":
         response.data = json.dumps(
             {
@@ -96,10 +107,10 @@ def handle_exception(e):
         )
 
         response.content_type = "application/json"
-    
+
     if (e.code or 500) >= 500:
         sentry_sdk.capture_exception(e)
-    
+
     return response
 
 

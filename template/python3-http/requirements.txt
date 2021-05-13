@@ -2,3 +2,5 @@ flask
 waitress
 sentry-sdk[flask]
 tox==3.*
+jsonschema
+rfc3987
