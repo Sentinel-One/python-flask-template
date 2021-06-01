@@ -15,6 +15,7 @@ RUN chown app /home/app
 
 USER app
 
+ENV PYTHONPATH=/home/app/function/
 ENV PATH=$PATH:/home/app/.local/bin
 
 WORKDIR /home/app/
