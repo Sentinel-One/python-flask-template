@@ -7,11 +7,17 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 import jsonschema
 from function import handler, json_schema
 
+def before_send(event, hint):
+    if isinstance(event, ConnectionError):
+        return None
+    return event
+
 if os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(os.environ["SENTRY_DSN"],
                     traces_sample_rate=0.2,
                     environment=os.environ.get("FLASK_ENV") or "development",
-                    integrations=[FlaskIntegration()])
+                    integrations=[FlaskIntegration()],
+                    before_send=before_send)
 
 app = Flask(__name__)
 
