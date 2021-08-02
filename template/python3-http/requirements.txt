@@ -1,4 +1,4 @@
-flask
+flask[async]
 waitress
 sentry-sdk[flask]
 tox==3.*
