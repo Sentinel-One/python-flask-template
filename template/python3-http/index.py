@@ -78,7 +78,7 @@ def format_response(resp):
 
 @app.route("/", defaults={"path": ""}, methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
 @app.route("/<path:path>", methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
-def call_handler(path):
+async def call_handler(path):
     event = Event()
     context = Context()
 
@@ -91,7 +91,7 @@ def call_handler(path):
             response.status_code = e["status"]
             abort(response)
 
-    response_data = handler.handle(event, context)
+    response_data = await handler.handle(event, context)
 
     resp = format_response(response_data)
     return resp
