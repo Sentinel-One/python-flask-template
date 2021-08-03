@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sentry_sdk
+import os, sentry_sdk, httpx
 from flask import Flask, request, jsonify, json
 from waitress import serve
 from werkzeug.exceptions import HTTPException, abort
@@ -8,7 +8,7 @@ import jsonschema
 from function import handler, json_schema
 
 def before_send(event, hint):
-    if isinstance(event, ConnectionError):
+    if isinstance(event, httpx.TimeoutException):
         return None
     return event
 
