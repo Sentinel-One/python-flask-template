@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-import os, sentry_sdk, httpx
+import os, sentry_sdk, httpx, jsonschema, asyncio
 from flask import Flask, request, jsonify, json
 from waitress import serve
 from werkzeug.exceptions import HTTPException, abort
 from sentry_sdk.integrations.flask import FlaskIntegration
-import jsonschema
 from function import handler, json_schema
 
 def before_send(event, hint):
@@ -91,7 +90,9 @@ async def call_handler(path):
             response.status_code = e["status"]
             abort(response)
 
-    response_data = await handler.handle(event, context)
+    response = handler.handle(event, context)
+
+    response_data = await response if type(response) == asyncio.coroutine else response
 
     resp = format_response(response_data)
     return resp
