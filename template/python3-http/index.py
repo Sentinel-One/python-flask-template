@@ -8,7 +8,7 @@ import jsonschema
 from function import handler, json_schema
 
 def before_send(event, hint):
-    if isinstance(event, httpx.TimeoutException):
+    if isinstance(event, httpx.TimeoutException) or isinstance(event, ConnectionError):
         return None
     return event
 
