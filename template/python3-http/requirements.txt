@@ -1,4 +1,5 @@
 flask[async]
+httpx
 waitress
 sentry-sdk[flask]
 tox==3.*
