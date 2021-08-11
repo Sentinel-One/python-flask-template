@@ -92,7 +92,7 @@ async def call_handler(path):
 
     response = handler.handle(event, context)
 
-    response_data = await response if type(response) == asyncio.coroutine else response
+    response_data = await response if asyncio.iscoroutine(response) else response
 
     resp = format_response(response_data)
     return resp
