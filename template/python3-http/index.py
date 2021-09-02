@@ -85,7 +85,7 @@ async def call_handler(path):
         try:
             jsonschema.validate(event.body, json_schema.payload_schema, format_checker=jsonschema.draft7_format_checker)
         except jsonschema.exceptions.ValidationError as err:
-            e = {"type": "VALIDATION_ERROR", "title": "The current JSON Body obejct does not conform with the JSON Schema", "status": 502, "detail": err.message}
+            e = {"type": "VALIDATION_ERROR", "title": f"The received payload does not match the expected schema {err.schema.get('$id','')}", "status": 502, "detail": err.message}
             response = jsonify(e)
             response.status_code = e["status"]
             abort(response)
