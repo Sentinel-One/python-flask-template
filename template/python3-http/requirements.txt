@@ -1,4 +1,4 @@
-flask[async]
+flask
 httpx
 waitress
 sentry-sdk[flask]
