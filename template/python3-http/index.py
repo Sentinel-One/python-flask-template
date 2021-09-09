@@ -6,17 +6,21 @@ from werkzeug.exceptions import HTTPException, abort
 from sentry_sdk.integrations.flask import FlaskIntegration
 from function import handler, json_schema
 
+
 def before_send(event, hint):
     if isinstance(event, httpx.TimeoutException) or isinstance(event, ConnectionError):
         return None
     return event
 
+
 if os.environ.get("SENTRY_DSN"):
-    sentry_sdk.init(os.environ["SENTRY_DSN"],
-                    traces_sample_rate=0.2,
-                    environment=os.environ.get("FLASK_ENV") or "development",
-                    integrations=[FlaskIntegration()],
-                    before_send=before_send)
+    sentry_sdk.init(
+        os.environ["SENTRY_DSN"],
+        traces_sample_rate=0.2,
+        environment=os.environ.get("FLASK_ENV") or "development",
+        integrations=[FlaskIntegration()],
+        before_send=before_send,
+    )
 
 app = Flask(__name__)
 
@@ -81,11 +85,16 @@ async def call_handler(path):
     event = Event()
     context = Context()
 
-    if hasattr(json_schema,'payload_schema'):
+    if hasattr(json_schema, "payload_schema"):
         try:
             jsonschema.validate(event.body, json_schema.payload_schema, format_checker=jsonschema.draft7_format_checker)
         except jsonschema.exceptions.ValidationError as err:
-            e = {"type": "VALIDATION_ERROR", "title": f"The received payload does not match the expected schema {err.schema.get('$id','')}", "status": 502, "detail": err.message}
+            e = {
+                "type": "VALIDATION_ERROR",
+                "title": f"The received payload does not match the expected schema {err.schema.get('$id','')}",
+                "status": 502,
+                "detail": err.message,
+            }
             response = jsonify(e)
             response.status_code = e["status"]
             abort(response)
