@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sentry_sdk, httpx, jsonschema, asyncio
+import os, sentry_sdk, httpx, jsonschema
 from flask import Flask, request, jsonify, json
 from waitress import serve
 from werkzeug.exceptions import HTTPException, abort
@@ -27,7 +27,7 @@ app = Flask(__name__)
 
 class Event:
     def __init__(self):
-        self.body = request.get_json(force=True)
+        self.body = request.get_json()
         self.headers = request.headers
         self.method = request.method
         self.query = request.args
@@ -79,15 +79,10 @@ def format_response(resp):
     return (body, statusCode, headers)
 
 
-@app.route("/", defaults={"path": ""}, methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
-@app.route("/<path:path>", methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
-async def call_handler(path):
-    event = Event()
-    context = Context()
-
-    if hasattr(json_schema, "payload_schema"):
+def schema_validate(body, schema):
+    if hasattr(json_schema, schema):
         try:
-            jsonschema.validate(event.body, json_schema.payload_schema, format_checker=jsonschema.draft7_format_checker)
+            jsonschema.validate(body, getattr(json_schema, schema), format_checker=jsonschema.draft7_format_checker)
         except jsonschema.exceptions.ValidationError as err:
             e = {
                 "type": "VALIDATION_ERROR",
@@ -99,12 +94,34 @@ async def call_handler(path):
             response.status_code = e["status"]
             abort(response)
 
-    response = handler.handle(event, context)
 
-    response_data = await response if asyncio.iscoroutine(response) else response
+@app.route("/", defaults={"path": ""}, methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
+@app.route("/<path:path>", methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
+def call_handler(path):
+    event = Event()
+    context = Context()
 
-    resp = format_response(response_data)
-    return resp
+    h = event.query.get("h", "main")
+
+    if h == "main":
+        schema_validate(event.body, "payload_schema")
+        response = handler.handle(event, context)
+        return format_response(response)
+
+    elif hasattr(handler, h):
+        schema_validate(event.body, f"{h}_schema")
+        return format_response(getattr(handler, h)(event, context))
+    else:
+        e = {
+            "type": "HANDLER_NOT_FOUND",
+            "title": "The specified function handler has not been found",
+            "status": 404,
+            "detail": h,
+        }
+
+        response = jsonify(e)
+        response.status_code = e["status"]
+        abort(response)
 
 
 @app.errorhandler(HTTPException)
