@@ -78,6 +78,7 @@ def format_response(resp):
 
     return (body, statusCode, headers)
 
+
 def extend_with_default(validator_class):
     validate_properties = validator_class.VALIDATORS["properties"]
 
@@ -87,15 +88,21 @@ def extend_with_default(validator_class):
                 instance.setdefault(property_, subschema["default"])
 
         for error in validate_properties(
-            validator, properties, instance, schema,
+            validator,
+            properties,
+            instance,
+            schema,
         ):
             yield error
 
     return jsonschema.validators.extend(
-        validator_class, {"properties": set_defaults},
+        validator_class,
+        {"properties": set_defaults},
     )
 
+
 Draft7Validator = extend_with_default(jsonschema.Draft7Validator)
+
 
 def schema_validate(body, schema):
     if hasattr(json_schema, schema):
