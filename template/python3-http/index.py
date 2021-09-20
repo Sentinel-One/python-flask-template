@@ -78,11 +78,29 @@ def format_response(resp):
 
     return (body, statusCode, headers)
 
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for property_, subschema in properties.items():
+            if "default" in subschema and not isinstance(instance, list):
+                instance.setdefault(property_, subschema["default"])
+
+        for error in validate_properties(
+            validator, properties, instance, schema,
+        ):
+            yield error
+
+    return jsonschema.validators.extend(
+        validator_class, {"properties": set_defaults},
+    )
+
+Draft7Validator = extend_with_default(jsonschema.Draft7Validator)
 
 def schema_validate(body, schema):
     if hasattr(json_schema, schema):
         try:
-            jsonschema.validate(body, getattr(json_schema, schema), format_checker=jsonschema.draft7_format_checker)
+            Draft7Validator(getattr(json_schema, schema)).validate(body)
         except jsonschema.exceptions.ValidationError as err:
             e = {
                 "type": "VALIDATION_ERROR",
