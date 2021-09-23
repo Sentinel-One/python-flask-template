@@ -98,7 +98,6 @@ def extend_with_default(validator_class):
     return jsonschema.validators.extend(
         validator_class,
         {"properties": set_defaults},
-        type_checker=jsonschema.draft7_format_checker,
     )
 
 
