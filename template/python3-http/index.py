@@ -98,6 +98,7 @@ def extend_with_default(validator_class):
     return jsonschema.validators.extend(
         validator_class,
         {"properties": set_defaults},
+        type_checker=jsonschema.draft7_format_checker,
     )
 
 
@@ -107,7 +108,9 @@ Draft7Validator = extend_with_default(jsonschema.Draft7Validator)
 def schema_validate(body, schema):
     if hasattr(json_schema, schema):
         try:
-            Draft7Validator(getattr(json_schema, schema)).validate(body)
+            Draft7Validator(getattr(json_schema, schema), format_checker=jsonschema.draft7_format_checker).validate(
+                body
+            )
         except jsonschema.exceptions.ValidationError as err:
             e = {
                 "type": "VALIDATION_ERROR",
