@@ -4,7 +4,11 @@ from flask import Flask, request, jsonify, json
 from waitress import serve
 from werkzeug.exceptions import HTTPException, abort
 from sentry_sdk.integrations.flask import FlaskIntegration
-from function import handler, json_schema
+
+app = Flask(__name__)
+
+with app.app_context():
+    from function import handler, json_schema
 
 
 def before_send(event, hint):
@@ -21,9 +25,6 @@ if os.environ.get("SENTRY_DSN"):
         integrations=[FlaskIntegration()],
         before_send=before_send,
     )
-
-app = Flask(__name__)
-
 
 class Event:
     def __init__(self):
@@ -122,34 +123,14 @@ def schema_validate(body, schema):
             abort(response)
 
 
-@app.route("/", defaults={"path": ""}, methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
-@app.route("/<path:path>", methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
-def call_handler(path):
+@app.route("/", methods=["GET", "PUT", "POST", "PATCH", "DELETE"])
+def call_handler():
     event = Event()
     context = Context()
 
-    h = event.query.get("h", "main")
-
-    if h == "main":
-        schema_validate(event.body, "payload_schema")
-        response = handler.handle(event, context)
-        return format_response(response)
-
-    elif hasattr(handler, h):
-        schema_validate(event.body, f"{h}_schema")
-        return format_response(getattr(handler, h)(event, context))
-    else:
-        e = {
-            "type": "HANDLER_NOT_FOUND",
-            "title": "The specified function handler has not been found",
-            "status": 404,
-            "detail": h,
-        }
-
-        response = jsonify(e)
-        response.status_code = e["status"]
-        abort(response)
-
+    schema_validate(event.body, "payload_schema")
+    response = handler.handle(event, context)
+    return format_response(response)
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
