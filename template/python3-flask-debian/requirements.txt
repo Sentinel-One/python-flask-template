@@ -1,3 +1,4 @@
 flask
 waitress
 tox==3.*
+werkzeug>=3.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
